@@ -1,0 +1,5 @@
+﻿{
+  "maxAttempts": 6,
+  "dailySeedNamespace": "ac-dle-v1",
+  "fields": ["first_game", "year", "region", "faction", "gender", "is_historical"]
+}

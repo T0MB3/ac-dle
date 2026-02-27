@@ -1,0 +1,33 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AC Character",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "aliases",
+    "first_game",
+    "year",
+    "region",
+    "faction",
+    "gender",
+    "is_historical",
+    "image_url"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string", "minLength": 1 },
+    "aliases": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "first_game": { "type": "string", "minLength": 1 },
+    "year": { "type": "integer" },
+    "region": { "type": "string", "minLength": 1 },
+    "faction": { "type": "string", "minLength": 1 },
+    "gender": { "type": "string", "enum": ["M", "F", "X"] },
+    "is_historical": { "type": "boolean" },
+    "image_url": { "type": "string" }
+  },
+  "additionalProperties": false
+}

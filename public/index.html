@@ -1,0 +1,43 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assassin's Creed DLE</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Assassin's Creed DLE</h1>
+      <p class="subtitle">Devine le personnage du jour avec essais illimites.</p>
+      <p id="day" class="day"></p>
+    </header>
+
+    <section class="guess-box" id="guess-box">
+      <label for="guess-input">Ton essai</label>
+      <div class="row">
+        <input id="guess-input" list="character-list" placeholder="Ex: Ezio" autocomplete="off" />
+        <datalist id="character-list"></datalist>
+        <button id="guess-btn" type="button">Valider</button>
+      </div>
+      <p id="message" class="message"></p>
+    </section>
+
+    <section>
+      <div class="grid header">
+        <span>Nom</span>
+        <span>Jeu</span>
+        <span>Année</span>
+        <span>Région</span>
+        <span>Faction</span>
+        <span>Genre</span>
+        <span>Historique</span>
+      </div>
+      <div id="results"></div>
+    </section>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
