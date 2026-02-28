@@ -19,13 +19,16 @@ let state = {
   characters: []
 };
 
+initTheme();
+if (dom.themeToggle) {
+  dom.themeToggle.addEventListener("click", toggleTheme);
+}
+
 init().catch((error) => {
   setMessage(`Erreur d'initialisation: ${error.message}`);
 });
 
 async function init() {
-  initTheme();
-
   const characters = await fetchJson("/api/characters");
   state.characters = Array.isArray(characters.characters) ? characters.characters : [];
 
@@ -42,7 +45,6 @@ async function init() {
       setMessage(`Erreur replay: ${error.message}`);
     });
   });
-  dom.themeToggle.addEventListener("click", toggleTheme);
 
   dom.input.addEventListener("input", (event) => {
     updateSuggestions(event.target.value);
