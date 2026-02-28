@@ -1,65 +1,98 @@
 ﻿<!doctype html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Assassin's Creed DLE</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
+
 <body>
   <main class="app">
-    <header class="hero">
-      <div class="hero-top">
-        <p class="eyebrow">Animus Training Interface</p>
-        <button id="theme-toggle" type="button" class="theme-toggle" aria-label="Changer de theme">Mode clair</button>
-      </div>
-      <h1>Assassin's Creed DLE</h1>
-      <p class="subtitle">Identifie la cible a partir des indices historiques.</p>
-      <p id="day" class="day"></p>
-      <div class="hud">
-        <article class="hud-card">
-          <p class="hud-label">Mission</p>
-          <p id="mission-code" class="hud-value">-</p>
-        </article>
-        <article class="hud-card">
-          <p class="hud-label">Essais</p>
-          <p id="tries-count" class="hud-value">0</p>
-        </article>
-        <article class="hud-card">
-          <p class="hud-label">Etat</p>
-          <p id="game-status" class="hud-value">En cours</p>
-        </article>
-      </div>
+    <header class="topbar">
+      <p class="eyebrow">Animus Training Interface</p>
+      <button id="theme-toggle" type="button" class="theme-toggle" aria-label="Changer de theme">Mode clair</button>
     </header>
 
-    <section class="guess-box" id="guess-box">
-      <label for="guess-input">Ton essai</label>
-      <div class="row">
-        <div class="input-wrap">
-          <input id="guess-input" placeholder="Ex: Ezio" autocomplete="off" />
-          <div id="suggestions" class="suggestions" role="listbox" aria-label="Suggestions personnages"></div>
-        </div>
-        <button id="guess-btn" type="button">Valider</button>
-        <button id="replay-btn" type="button" class="secondary">Rejouer</button>
+    <section id="menu-screen" class="menu-screen">
+      <h1>Assassin's Creed DLE</h1>
+      <p class="menu-subtitle">Choisis un mode de simulation pour lancer une mission.</p>
+
+      <div class="menu-stack">
+        <button type="button" class="mode-card" data-mode="classic">
+          <span class="mode-icon">AC</span>
+          <span class="mode-content">
+            <strong>Classique</strong>
+            <small>Obtiens des indices complets a chaque essai.</small>
+          </span>
+        </button>
+
+        <!-- <button type="button" class="mode-card" data-mode="timeline">
+          <span class="mode-icon">YR</span>
+          <span class="mode-content">
+            <strong>Chronologie</strong>
+            <small>Concentre-toi sur l'annee, le jeu et la region.</small>
+          </span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="intel">
+          <span class="mode-icon">IN</span>
+          <span class="mode-content">
+            <strong>Renseignement</strong>
+            <small>Analyse la faction, le genre et le profil historique.</small>
+          </span>
+        </button> -->
       </div>
-      <p id="message" class="message"></p>
     </section>
 
-    <section class="intel-board">
-      <p class="board-title">Dossier d'enquete</p>
-      <div class="grid header">
-        <span>Nom</span>
-        <span>Jeu</span>
-        <span>Année</span>
-        <span>Région</span>
-        <span>Faction</span>
-        <span>Genre</span>
-        <span>Historique</span>
-      </div>
-      <div id="results"></div>
+    <section id="game-screen" class="game-screen hidden">
+      <header class="hero">
+        <div class="hero-top">
+          <p class="eyebrow">Session active</p>
+          <button id="menu-btn" type="button" class="secondary small-btn">Menu</button>
+        </div>
+        <h2 id="mode-title">Mode Classique</h2>
+        <p id="day" class="day"></p>
+
+        <div class="hud">
+          <article class="hud-card">
+            <p class="hud-label">Mission</p>
+            <p id="mission-code" class="hud-value">-</p>
+          </article>
+          <article class="hud-card">
+            <p class="hud-label">Essais</p>
+            <p id="tries-count" class="hud-value">0</p>
+          </article>
+          <article class="hud-card">
+            <p class="hud-label">Etat</p>
+            <p id="game-status" class="hud-value">En cours</p>
+          </article>
+        </div>
+      </header>
+
+      <section class="guess-box" id="guess-box">
+        <label for="guess-input">Ton essai</label>
+        <div class="row">
+          <div class="input-wrap">
+            <input id="guess-input" placeholder="Ex: Ezio" autocomplete="off" />
+            <div id="suggestions" class="suggestions" role="listbox" aria-label="Suggestions personnages"></div>
+          </div>
+          <button id="guess-btn" type="button">Valider</button>
+          <button id="replay-btn" type="button" class="secondary">Rejouer</button>
+        </div>
+        <p id="message" class="message"></p>
+      </section>
+
+      <section class="intel-board">
+        <p class="board-title">Dossier d'enquete</p>
+        <div id="results-header" class="grid header"></div>
+        <div id="results"></div>
+      </section>
     </section>
   </main>
 
   <script type="module" src="/app.js"></script>
 </body>
+
 </html>
