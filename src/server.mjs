@@ -18,7 +18,14 @@ const PORT = Number(process.env.PORT ?? 3000);
 
 const characters = getAllCharacters();
 const searchIndex = buildSearchIndex(characters);
-const characterNames = characters.map((c) => c.name).sort((a, b) => a.localeCompare(b));
+const searchCharacters = characters
+  .map((character) => ({
+    id: character.id,
+    name: character.name,
+    image_url: character.image_url ?? ""
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+const testGames = new Map();
 
 const server = http.createServer((req, res) => {
   try {
@@ -32,6 +39,10 @@ const server = http.createServer((req, res) => {
 
     if (req.method === "GET" && req.url === "/api/characters") {
       return handleCharacters(res);
+    }
+
+    if (req.method === "POST" && req.url === "/api/new-game") {
+      return handleNewGame(res);
     }
 
     if (req.method === "POST" && req.url === "/api/guess") {
@@ -62,13 +73,25 @@ function handleDaily(res) {
 
 function handleCharacters(res) {
   return sendJson(res, 200, {
-    characters: characterNames
+    characters: searchCharacters
+  });
+}
+
+function handleNewGame(res) {
+  const gameId = cryptoRandomId();
+  const answerCharacter = randomCharacter();
+  testGames.set(gameId, answerCharacter.id);
+
+  return sendJson(res, 200, {
+    gameId,
+    mode: "test"
   });
 }
 
 async function handleGuess(req, res) {
   const body = await readJsonBody(req);
   const rawGuess = body?.guess ?? body?.id ?? body?.name;
+  const gameId = typeof body?.gameId === "string" ? body.gameId : "";
 
   if (!rawGuess || typeof rawGuess !== "string") {
     return sendJson(res, 400, {
@@ -81,16 +104,41 @@ async function handleGuess(req, res) {
     return sendJson(res, 404, { error: "Personnage introuvable pour ce guess." });
   }
 
-  const { dayKey, character: answerCharacter } = getCharacterOfDay(characters);
+  const answerCharacter = resolveAnswerCharacter(gameId);
+  const dayKey = new Date().toISOString().slice(0, 10);
   const feedback = compareGuess(guessedCharacter, answerCharacter);
   const isCorrect = guessedCharacter.id === answerCharacter.id;
 
   return sendJson(res, 200, {
     day: dayKey,
+    gameId: gameId || null,
+    mode: gameId ? "test" : "daily",
     guess: sanitizeCharacter(guessedCharacter),
     isCorrect,
     feedback
   });
+}
+
+function resolveAnswerCharacter(gameId) {
+  if (gameId && testGames.has(gameId)) {
+    const answerId = testGames.get(gameId);
+    const answer = characters.find((character) => character.id === answerId);
+    if (answer) {
+      return answer;
+    }
+  }
+
+  const { character } = getCharacterOfDay(characters);
+  return character;
+}
+
+function randomCharacter() {
+  const index = Math.floor(Math.random() * characters.length);
+  return characters[index];
+}
+
+function cryptoRandomId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function serveStatic(urlPath, res) {

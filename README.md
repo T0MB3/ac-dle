@@ -18,7 +18,9 @@
 - `GET /api/daily`
   - Réponse: `{ day, characterCount }`
 - `GET /api/characters`
-  - Réponse: `{ characters: string[] }`
+  - Réponse: `{ characters: Array<{ id, name, image_url }> }`
+- `POST /api/new-game`
+  - Réponse: `{ gameId, mode: "test" }`
 - `POST /api/guess`
-  - Body JSON: `{ "guess": "Ezio" }` (nom, alias ou id)
-  - Réponse: `{ day, guess, isCorrect, feedback }`
+  - Body JSON: `{ "guess": "Ezio", "gameId": "..." }` (nom, alias ou id)
+  - Réponse: `{ day, gameId, mode, guess, isCorrect, feedback }`
