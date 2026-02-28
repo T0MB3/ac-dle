@@ -8,23 +8,45 @@
 </head>
 <body>
   <main class="app">
-    <header>
+    <header class="hero">
+      <div class="hero-top">
+        <p class="eyebrow">Animus Training Interface</p>
+        <button id="theme-toggle" type="button" class="theme-toggle" aria-label="Changer de theme">Mode clair</button>
+      </div>
       <h1>Assassin's Creed DLE</h1>
-      <p class="subtitle">Devine le personnage du jour avec essais illimites.</p>
+      <p class="subtitle">Identifie la cible a partir des indices historiques.</p>
       <p id="day" class="day"></p>
+      <div class="hud">
+        <article class="hud-card">
+          <p class="hud-label">Mission</p>
+          <p id="mission-code" class="hud-value">-</p>
+        </article>
+        <article class="hud-card">
+          <p class="hud-label">Essais</p>
+          <p id="tries-count" class="hud-value">0</p>
+        </article>
+        <article class="hud-card">
+          <p class="hud-label">Etat</p>
+          <p id="game-status" class="hud-value">En cours</p>
+        </article>
+      </div>
     </header>
 
     <section class="guess-box" id="guess-box">
       <label for="guess-input">Ton essai</label>
       <div class="row">
-        <input id="guess-input" list="character-list" placeholder="Ex: Ezio" autocomplete="off" />
-        <datalist id="character-list"></datalist>
+        <div class="input-wrap">
+          <input id="guess-input" placeholder="Ex: Ezio" autocomplete="off" />
+          <div id="suggestions" class="suggestions" role="listbox" aria-label="Suggestions personnages"></div>
+        </div>
         <button id="guess-btn" type="button">Valider</button>
+        <button id="replay-btn" type="button" class="secondary">Rejouer</button>
       </div>
       <p id="message" class="message"></p>
     </section>
 
-    <section>
+    <section class="intel-board">
+      <p class="board-title">Dossier d'enquete</p>
       <div class="grid header">
         <span>Nom</span>
         <span>Jeu</span>
