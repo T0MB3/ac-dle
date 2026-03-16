@@ -204,6 +204,7 @@ function updateSuggestions(query) {
 
   const matches = state.characters
     .filter((character) => normalizeText(character.name).startsWith(normalizedQuery))
+    .filter((character) => !hasAttemptedCharacter(character))
     .slice(0, 20);
 
   dom.suggestions.innerHTML = "";
@@ -274,6 +275,12 @@ async function submitGuess() {
     return;
   }
 
+  if (hasAttemptedGuessValue(guessValue)) {
+    setMessage("Ce personnage a deja ete tente.");
+    hideSuggestions();
+    return;
+  }
+
   try {
     const response = await fetchJson("/api/guess", {
       method: "POST",
@@ -321,6 +328,29 @@ function renderResults() {
 
     dom.results.appendChild(row);
   }
+}
+
+function hasAttemptedCharacter(character) {
+  return state.attempts.some((attempt) => attempt.guess?.id === character.id);
+}
+
+function hasAttemptedGuessValue(guessValue) {
+  const normalizedGuess = normalizeText(guessValue);
+  if (!normalizedGuess) {
+    return false;
+  }
+
+  const matchedCharacter = state.characters.find((character) => {
+    return character.id === guessValue || normalizeText(character.name) === normalizedGuess;
+  });
+
+  if (matchedCharacter) {
+    return hasAttemptedCharacter(matchedCharacter);
+  }
+
+  return state.attempts.some((attempt) => {
+    return attempt.guess?.id === guessValue || normalizeText(attempt.guess?.name) === normalizedGuess;
+  });
 }
 
 function activeFields() {
