@@ -1,18 +1,73 @@
-﻿const dom = {
+﻿const MODE_CONFIG = {
+  classic: {
+    label: "Classique",
+    fields: ["first_game", "year", "region", "faction", "gender", "is_historical"]
+  },
+  timeline: {
+    label: "Chronologie",
+    fields: ["year", "first_game", "region"]
+  },
+  intel: {
+    label: "Renseignement",
+    fields: ["faction", "region", "gender", "is_historical"]
+  }
+};
+
+const FIELD_CONFIG = {
+  first_game: {
+    label: "Jeu",
+    value: (attempt) => attempt.guess.first_game,
+    status: (attempt) => attempt.feedback.first_game
+  },
+  year: {
+    label: "Annee",
+    value: (attempt) => formatYear(attempt.guess.year, attempt.feedback.year),
+    status: (attempt) => attempt.feedback.year
+  },
+  region: {
+    label: "Region",
+    value: (attempt) => attempt.guess.region,
+    status: (attempt) => attempt.feedback.region
+  },
+  faction: {
+    label: "Faction",
+    value: (attempt) => attempt.guess.faction,
+    status: (attempt) => attempt.feedback.faction
+  },
+  gender: {
+    label: "Genre",
+    value: (attempt) => attempt.guess.gender,
+    status: (attempt) => attempt.feedback.gender
+  },
+  is_historical: {
+    label: "Historique",
+    value: (attempt) => (attempt.guess.is_historical ? "Oui" : "Non"),
+    status: (attempt) => attempt.feedback.is_historical
+  }
+};
+
+const dom = {
+  themeToggle: document.getElementById("theme-toggle"),
+  menuScreen: document.getElementById("menu-screen"),
+  gameScreen: document.getElementById("game-screen"),
+  modeTitle: document.getElementById("mode-title"),
+  modeCards: Array.from(document.querySelectorAll(".mode-card")),
+  menuButton: document.getElementById("menu-btn"),
   day: document.getElementById("day"),
   input: document.getElementById("guess-input"),
   suggestions: document.getElementById("suggestions"),
   button: document.getElementById("guess-btn"),
   replayButton: document.getElementById("replay-btn"),
-  themeToggle: document.getElementById("theme-toggle"),
   missionCode: document.getElementById("mission-code"),
   triesCount: document.getElementById("tries-count"),
   gameStatus: document.getElementById("game-status"),
   message: document.getElementById("message"),
+  resultsHeader: document.getElementById("results-header"),
   results: document.getElementById("results")
 };
 
 let state = {
+  mode: "classic",
   gameId: "",
   attempts: [],
   done: false,
@@ -32,12 +87,20 @@ async function init() {
   const characters = await fetchJson("/api/characters");
   state.characters = Array.isArray(characters.characters) ? characters.characters : [];
 
-  await startNewGame();
-  hideSuggestions();
-  restoreState();
-  renderResults();
-  updateUiLock();
-  updateHud();
+  dom.modeCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      const mode = card.dataset.mode;
+      startMode(mode).catch((error) => {
+        setMessage(`Erreur mode: ${error.message}`);
+      });
+    });
+  });
+
+  dom.menuButton.addEventListener("click", () => {
+    showScreen("menu");
+    hideSuggestions();
+    setMessage("");
+  });
 
   dom.button.addEventListener("click", submitGuess);
   dom.replayButton.addEventListener("click", () => {
@@ -61,33 +124,55 @@ async function init() {
       submitGuess();
     }
   });
+
+  showScreen("menu");
 }
 
-function initTheme() {
-  const savedTheme = localStorage.getItem("ac-dle:theme");
-  const theme = savedTheme === "light" ? "light" : "dark";
-  applyTheme(theme);
+async function startMode(mode) {
+  if (!MODE_CONFIG[mode]) return;
+
+  state.mode = mode;
+  state.attempts = [];
+  state.done = false;
+  dom.input.value = "";
+  setMessage("");
+  renderHeader();
+
+  await startNewGame();
+  restoreState();
+  renderResults();
+  updateUiLock();
+  updateHud();
+  showScreen("game");
 }
 
-function toggleTheme() {
-  const current = document.body.getAttribute("data-theme") === "light" ? "light" : "dark";
-  const next = current === "light" ? "dark" : "light";
-  applyTheme(next);
-  localStorage.setItem("ac-dle:theme", next);
+function showScreen(screen) {
+  const isGame = screen === "game";
+  dom.menuScreen.classList.toggle("hidden", isGame);
+  dom.gameScreen.classList.toggle("hidden", !isGame);
 }
 
-function applyTheme(theme) {
-  document.body.setAttribute("data-theme", theme);
-  if (dom.themeToggle) {
-    dom.themeToggle.textContent = theme === "light" ? "Mode sombre" : "Mode clair";
+function renderHeader() {
+  const fields = activeFields();
+  dom.resultsHeader.innerHTML = "";
+  dom.resultsHeader.style.setProperty("--extra-cols", String(fields.length));
+
+  const nameCell = document.createElement("span");
+  nameCell.textContent = "Nom";
+  dom.resultsHeader.appendChild(nameCell);
+
+  for (const field of fields) {
+    const span = document.createElement("span");
+    span.textContent = FIELD_CONFIG[field].label;
+    dom.resultsHeader.appendChild(span);
   }
 }
 
 async function startNewGame() {
   const game = await fetchJson("/api/new-game", { method: "POST" });
   state.gameId = game.gameId;
+  dom.modeTitle.textContent = `Mode ${MODE_CONFIG[state.mode].label}`;
   dom.day.textContent = "Mode test actif - personnage random a chaque replay.";
-  updateHud();
 }
 
 async function restartGame() {
@@ -181,6 +266,7 @@ function normalizeText(value) {
 
 async function submitGuess() {
   if (state.done) return;
+  if (!state.gameId) return;
 
   const guessValue = dom.input.value.trim();
   if (!guessValue) {
@@ -216,31 +302,29 @@ async function submitGuess() {
 
 function renderResults() {
   dom.results.innerHTML = "";
+  const fields = activeFields();
 
   for (const attempt of state.attempts) {
     const row = document.createElement("div");
     row.className = "grid";
+    row.style.setProperty("--extra-cols", String(fields.length));
 
     row.appendChild(buildNameCell(attempt.guess, attempt.feedback.name));
 
-    const cells = [
-      [attempt.guess.first_game, attempt.feedback.first_game],
-      [formatYear(attempt.guess.year, attempt.feedback.year), attempt.feedback.year],
-      [attempt.guess.region, attempt.feedback.region],
-      [attempt.guess.faction, attempt.feedback.faction],
-      [attempt.guess.gender, attempt.feedback.gender],
-      [attempt.guess.is_historical ? "Oui" : "Non", attempt.feedback.is_historical]
-    ];
-
-    for (const [value, status] of cells) {
+    for (const field of fields) {
+      const cfg = FIELD_CONFIG[field];
       const cell = document.createElement("span");
-      cell.textContent = value;
-      cell.classList.add(status || "miss");
+      cell.textContent = cfg.value(attempt);
+      cell.classList.add(cfg.status(attempt) || "miss");
       row.appendChild(cell);
     }
 
     dom.results.appendChild(row);
   }
+}
+
+function activeFields() {
+  return MODE_CONFIG[state.mode]?.fields ?? MODE_CONFIG.classic.fields;
 }
 
 function buildNameCell(character, status) {
@@ -296,7 +380,7 @@ function setMessage(text, success = false) {
 }
 
 function storageKey() {
-  return `ac-dle:test:${state.gameId}`;
+  return `ac-dle:test:${state.mode}:${state.gameId}`;
 }
 
 function persistState() {
@@ -343,6 +427,26 @@ function updateHud() {
   }
   if (dom.gameStatus) {
     dom.gameStatus.textContent = state.done ? "Cible identifiee" : "En cours";
+  }
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem("ac-dle:theme");
+  const theme = savedTheme === "light" ? "light" : "dark";
+  applyTheme(theme);
+}
+
+function toggleTheme() {
+  const current = document.body.getAttribute("data-theme") === "light" ? "light" : "dark";
+  const next = current === "light" ? "dark" : "light";
+  applyTheme(next);
+  localStorage.setItem("ac-dle:theme", next);
+}
+
+function applyTheme(theme) {
+  document.body.setAttribute("data-theme", theme);
+  if (dom.themeToggle) {
+    dom.themeToggle.textContent = theme === "light" ? "Mode sombre" : "Mode clair";
   }
 }
 
